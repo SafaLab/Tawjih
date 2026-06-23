@@ -477,6 +477,36 @@
 </div>
 
 
+<!-- مودال تعديل مسؤول التوجيه -->
+<div class="modal-overlay" id="editSupervisorModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>✏️ تعديل بيانات التوجيه</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <form id="editSupervisorForm">
+      <input type="hidden" id="editSupId" />
+      <div class="field">
+        <label>👤 اسم المسؤول</label>
+        <input type="text" id="editSupName" required placeholder="اسم مسؤول التوجيه" />
+      </div>
+      <div class="field">
+        <label>🏷️ اسم التوجيه</label>
+        <input type="text" id="editSupDivision" required placeholder="مثال: توجيه صحافة غرب القاهرة" />
+      </div>
+      <div class="field">
+        <label>📧 البريد الإلكتروني</label>
+        <div style="padding:11px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:14px" id="editSupEmail">—</div>
+        <small style="color:var(--text-faint);font-size:11px;margin-top:4px;display:block">البريد الإلكتروني لا يمكن تعديله</small>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" data-close-modal>إلغاء</button>
+        <button type="submit" class="btn btn-primary" id="editSupSaveBtn">💾 حفظ التعديلات</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ===== Confirm Modal عالمي ===== -->
 <div class="gc-overlay" id="globalConfirmModal" role="dialog" aria-modal="true" aria-labelledby="gcTitle">
   <div class="gc-box">

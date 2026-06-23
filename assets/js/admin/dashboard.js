@@ -4,7 +4,7 @@
 import { guardPage, logout } from "../auth.js";
 import {
   app, db, initializeApp, deleteApp, getAuth, createUserWithEmailAndPassword,
-  collection, getDocs, query, where, doc, setDoc, serverTimestamp, deleteDoc,
+  collection, getDocs, query, where, doc, setDoc, updateDoc, serverTimestamp, deleteDoc,
 } from "../firebase-config.js";
 import {
   showToast, openModal, closeModal, bindModalDismiss, initials, escapeHtml, isOverdue, formatDate, confirmAction, bindConfirmModal,
@@ -159,7 +159,10 @@ function renderSupervisors() {
         <td data-label="متأخرة">${late > 0 ? `<span style="color:var(--danger);font-weight:800">${late}</span>` : "0"}</td>
         <td data-label="الحالة">${statusBadge}</td>
         <td data-label="إجراءات">
-          <button class="btn btn-icon btn-danger" data-del="${s.id}" title="حذف الحساب">🗑️</button>
+          <div style="display:flex;gap:6px;justify-content:center">
+            <button class="btn btn-icon btn-secondary" data-edit="${s.id}" title="تعديل">✏️</button>
+            <button class="btn btn-icon btn-danger" data-del="${s.id}" title="حذف">🗑️</button>
+          </div>
         </td>
       </tr>
       <tr class="supervisor-details-row" id="details-${s.id}">
@@ -204,13 +207,19 @@ function renderSupervisors() {
   });
 
   // حذف بتأكيد مخصص
+  // حذف
   tbody.querySelectorAll("[data-del]").forEach(b => {
+    b.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await deleteSupervisor(b.dataset.del);
+    });
+  });
+
+  // تعديل
+  tbody.querySelectorAll("[data-edit]").forEach(b => {
     b.addEventListener("click", (e) => {
       e.stopPropagation();
-      confirmDelete(
-        `هل أنت متأكد من حذف حساب التوجيه؟\nسيُحذف الحساب من قاعدة البيانات. الموجّهون والمهام المرتبطة به ستبقى.`,
-        () => deleteSupervisor(b.dataset.del)
-      );
+      openEditSupervisor(b.dataset.edit);
     });
   });
 }
@@ -547,5 +556,41 @@ document.getElementById("exportAllBtn").addEventListener("click",     exportAll)
 document.getElementById("exportMembersBtn").addEventListener("click", exportMembers);
 document.getElementById("exportTasksBtn").addEventListener("click",   exportTasks);
 document.getElementById("exportLateBtn").addEventListener("click",    exportLate);
+
+// ===== تعديل بيانات مسؤول التوجيه =====
+function openEditSupervisor(uid) {
+  const s = supervisors.find(x => x.id === uid);
+  if (!s) return;
+  document.getElementById("editSupId").value        = uid;
+  document.getElementById("editSupName").value      = s.name || "";
+  document.getElementById("editSupDivision").value  = s.supervisionName || "";
+  document.getElementById("editSupEmail").textContent = s.email || "";
+  openModal("editSupervisorModal");
+}
+
+document.getElementById("editSupervisorForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const uid            = document.getElementById("editSupId").value;
+  const name           = document.getElementById("editSupName").value.trim();
+  const supervisionName = document.getElementById("editSupDivision").value.trim();
+  if (!name || !supervisionName) { showToast("برجاء ملء جميع الحقول", "error"); return; }
+
+  const saveBtn = document.getElementById("editSupSaveBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "جاري الحفظ...";
+
+  try {
+    await updateDoc(doc(db, "users", uid), { name, supervisionName });
+    showToast("تم تحديث بيانات التوجيه ✅");
+    closeModal("editSupervisorModal");
+    loadAll();
+  } catch (err) {
+    showToast("حصل خطأ أثناء الحفظ", "error");
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "💾 حفظ التعديلات";
+  }
+});
+
 
 loadAll();
